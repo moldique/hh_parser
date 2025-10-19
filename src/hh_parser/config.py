@@ -64,4 +64,3 @@ EXPORT_CONFIG = {
     'output_directory': 'output',
     'filename_template': 'vacancies_{timestamp}'
 }
-

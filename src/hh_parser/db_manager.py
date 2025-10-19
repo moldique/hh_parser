@@ -13,13 +13,13 @@ class DBManager:
     """
     Класс для управления данными в базе данных PostgreSQL
     """
-    
-    def __init__(self, host: str = "localhost", port: int = 5432, 
-                 database: str = "hh_parser", user: str = "postgres", 
+
+    def __init__(self, host: str = "localhost", port: int = 5432,
+                 database: str = "hh_parser", user: str = "postgres",
                  password: str = "postgres"):
         """
         Инициализация менеджера базы данных
-        
+
         Args:
             host: Хост базы данных
             port: Порт базы данных
@@ -28,16 +28,16 @@ class DBManager:
             password: Пароль пользователя
         """
         self.db_manager = DatabaseManager(host, port, database, user, password)
-    
+
     def get_companies_and_vacancies_count(self) -> List[Dict[str, Any]]:
         """
         Получает список всех компаний и количество вакансий у каждой компании
-        
+
         Returns:
             List[Dict]: Список словарей с информацией о компаниях и количестве вакансий
         """
         query = """
-            SELECT 
+            SELECT
                 c.name as company_name,
                 COUNT(v.id) as vacancies_count
             FROM companies c
@@ -45,23 +45,23 @@ class DBManager:
             GROUP BY c.company_id, c.name
             ORDER BY vacancies_count DESC
         """
-        
+
         logger.info("Получение списка компаний и количества вакансий")
         return self.db_manager.execute_query(query)
-    
+
     def get_all_vacancies(self) -> List[Dict[str, Any]]:
         """
-        Получает список всех вакансий с указанием названия компании, 
+        Получает список всех вакансий с указанием названия компании,
         названия вакансии, зарплаты и ссылки на вакансию
-        
+
         Returns:
             List[Dict]: Список словарей с информацией о вакансиях
         """
         query = """
-            SELECT 
+            SELECT
                 c.name as company_name,
                 v.title as vacancy_title,
-                CASE 
+                CASE
                     WHEN v.salary_from IS NOT NULL AND v.salary_to IS NOT NULL THEN
                         CONCAT(v.salary_from, ' - ', v.salary_to, ' ', v.currency)
                     WHEN v.salary_from IS NOT NULL THEN
@@ -75,20 +75,20 @@ class DBManager:
             JOIN companies c ON v.company_id = c.company_id
             ORDER BY c.name, v.title
         """
-        
+
         logger.info("Получение списка всех вакансий")
         return self.db_manager.execute_query(query)
-    
+
     def get_avg_salary(self) -> float:
         """
         Получает среднюю зарплату по всем вакансиям
-        
+
         Returns:
             float: Средняя зарплата
         """
         query = """
             SELECT AVG(
-                CASE 
+                CASE
                     WHEN salary_from IS NOT NULL AND salary_to IS NOT NULL THEN
                         (salary_from + salary_to) / 2
                     WHEN salary_from IS NOT NULL THEN
@@ -101,25 +101,25 @@ class DBManager:
             FROM vacancies
             WHERE salary_from IS NOT NULL OR salary_to IS NOT NULL
         """
-        
+
         logger.info("Получение средней зарплаты")
         result = self.db_manager.execute_query(query)
-        
+
         if result and result[0]['avg_salary']:
             return round(float(result[0]['avg_salary']), 2)
         return 0.0
-    
+
     def get_vacancies_with_higher_salary(self) -> List[Dict[str, Any]]:
         """
         Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям
-        
+
         Returns:
             List[Dict]: Список вакансий с зарплатой выше средней
         """
         query = """
             WITH avg_salary AS (
                 SELECT AVG(
-                    CASE 
+                    CASE
                         WHEN salary_from IS NOT NULL AND salary_to IS NOT NULL THEN
                             (salary_from + salary_to) / 2
                         WHEN salary_from IS NOT NULL THEN
@@ -132,10 +132,10 @@ class DBManager:
                 FROM vacancies
                 WHERE salary_from IS NOT NULL OR salary_to IS NOT NULL
             )
-            SELECT 
+            SELECT
                 c.name as company_name,
                 v.title as vacancy_title,
-                CASE 
+                CASE
                     WHEN v.salary_from IS NOT NULL AND v.salary_to IS NOT NULL THEN
                         CONCAT(v.salary_from, ' - ', v.salary_to, ' ', v.currency)
                     WHEN v.salary_from IS NOT NULL THEN
@@ -149,7 +149,7 @@ class DBManager:
             JOIN companies c ON v.company_id = c.company_id
             CROSS JOIN avg_salary
             WHERE (
-                CASE 
+                CASE
                     WHEN v.salary_from IS NOT NULL AND v.salary_to IS NOT NULL THEN
                         (v.salary_from + v.salary_to) / 2
                     WHEN v.salary_from IS NOT NULL THEN
@@ -159,8 +159,8 @@ class DBManager:
                     ELSE NULL
                 END
             ) > avg_salary.avg_sal
-            ORDER BY 
-                CASE 
+            ORDER BY
+                CASE
                     WHEN v.salary_from IS NOT NULL AND v.salary_to IS NOT NULL THEN
                         (v.salary_from + v.salary_to) / 2
                     WHEN v.salary_from IS NOT NULL THEN
@@ -170,25 +170,25 @@ class DBManager:
                     ELSE 0
                 END DESC
         """
-        
+
         logger.info("Получение вакансий с зарплатой выше средней")
         return self.db_manager.execute_query(query)
-    
+
     def get_vacancies_with_keyword(self, keyword: str) -> List[Dict[str, Any]]:
         """
         Получает список всех вакансий, в названии которых содержатся переданные слова
-        
+
         Args:
             keyword: Ключевое слово для поиска (например, "python")
-            
+
         Returns:
             List[Dict]: Список вакансий, содержащих ключевое слово в названии
         """
         query = """
-            SELECT 
+            SELECT
                 c.name as company_name,
                 v.title as vacancy_title,
-                CASE 
+                CASE
                     WHEN v.salary_from IS NOT NULL AND v.salary_to IS NOT NULL THEN
                         CONCAT(v.salary_from, ' - ', v.salary_to, ' ', v.currency)
                     WHEN v.salary_from IS NOT NULL THEN
@@ -203,22 +203,22 @@ class DBManager:
             WHERE LOWER(v.title) LIKE LOWER(%s)
             ORDER BY c.name, v.title
         """
-        
+
         search_pattern = f"%{keyword}%"
         logger.info(f"Поиск вакансий по ключевому слову: {keyword}")
         return self.db_manager.execute_query(query, (search_pattern,))
-    
-    def insert_company(self, company_id: int, name: str, url: str = None, 
+
+    def insert_company(self, company_id: int, name: str, url: str = None,
                       description: str = None) -> bool:
         """
         Вставка компании в базу данных
-        
+
         Args:
             company_id: ID компании на hh.ru
             name: Название компании
             url: URL компании
             description: Описание компании
-            
+
         Returns:
             bool: True если вставка успешна
         """
@@ -230,7 +230,7 @@ class DBManager:
                 url = EXCLUDED.url,
                 description = EXCLUDED.description
         """
-        
+
         try:
             if self.db_manager.connect():
                 cursor = self.db_manager.connection.cursor()
@@ -242,16 +242,16 @@ class DBManager:
             logger.error(f"Ошибка при добавлении компании: {e}")
         finally:
             self.db_manager.disconnect()
-        
+
         return False
-    
+
     def insert_vacancy(self, vacancy_id: int, company_id: int, title: str,
                       salary_from: int = None, salary_to: int = None,
                       currency: str = None, url: str = None,
                       description: str = None) -> bool:
         """
         Вставка вакансии в базу данных
-        
+
         Args:
             vacancy_id: ID вакансии на hh.ru
             company_id: ID компании
@@ -261,12 +261,12 @@ class DBManager:
             currency: Валюта
             url: URL вакансии
             description: Описание вакансии
-            
+
         Returns:
             bool: True если вставка успешна
         """
         query = """
-            INSERT INTO vacancies (vacancy_id, company_id, title, salary_from, 
+            INSERT INTO vacancies (vacancy_id, company_id, title, salary_from,
                                  salary_to, currency, url, description)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (vacancy_id) DO UPDATE SET
@@ -278,7 +278,7 @@ class DBManager:
                 url = EXCLUDED.url,
                 description = EXCLUDED.description
         """
-        
+
         try:
             if self.db_manager.connect():
                 cursor = self.db_manager.connection.cursor()
@@ -291,5 +291,5 @@ class DBManager:
             logger.error(f"Ошибка при добавлении вакансии: {e}")
         finally:
             self.db_manager.disconnect()
-        
+
         return False

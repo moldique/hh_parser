@@ -2,7 +2,7 @@
 
 Парсер вакансий с HeadHunter для анализа рынка труда.
 
-**GitHub:** [https://github.com/username/hh_parser](https://github.com/username/hh_parser)
+**GitHub:** [https://github.com/moldique/hh_parser](https://github.com/moldique/hh_parser)
 
 ## Установка и настройка
 
@@ -14,7 +14,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/username/hh_parser.git
+git clone https://github.com/moldique/hh_parser.git
 cd hh_parser
 ```
 

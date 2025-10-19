@@ -3,7 +3,6 @@
 """
 
 import sys
-import os
 from database import DatabaseManager
 import logging
 
@@ -20,26 +19,26 @@ def setup_database():
     Создание базы данных и таблиц
     """
     logger.info("Начинаем настройку базы данных...")
-    
+
     # Создаем экземпляр менеджера базы данных
     db_manager = DatabaseManager()
-    
+
     try:
         # Создаем базу данных
         logger.info("Создание базы данных...")
         if not db_manager.create_database():
             logger.error("Не удалось создать базу данных")
             return False
-        
+
         # Создаем таблицы
         logger.info("Создание таблиц...")
         if not db_manager.create_tables():
             logger.error("Не удалось создать таблицы")
             return False
-        
+
         logger.info("База данных и таблицы созданы успешно!")
         return True
-        
+
     except Exception as e:
         logger.error(f"Ошибка при настройке базы данных: {e}")
         return False
@@ -51,7 +50,7 @@ def main():
     """
     print("=== Настройка базы данных для hh_parser ===")
     print("Создание базы данных и таблиц...")
-    
+
     if setup_database():
         print("[SUCCESS] База данных настроена успешно!")
         print("Созданы таблицы:")
