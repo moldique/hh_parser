@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "hh-parser"
+version = "0.1.0"
+description = "Парсер вакансий с HeadHunter"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "hh_parser", from = "src"}]
+
+[tool.poetry.scripts]
+hh-parser = "hh_parser.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+requests = "^2.31.0"
+psycopg2-binary = "^2.9.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+black = "^23.0.0"
+flake8 = "^6.0.0"
+mypy = "^1.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
